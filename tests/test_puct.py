@@ -687,5 +687,10 @@ def run_all_tests(game_name: str):
 
 
 if __name__ == "__main__":
+    if not sys.argv[1:]:
+        print("Usage: uv run python test_puct.py [game_name]")
+        print("Example: uv run python test_puct.py tictactoe")
+        print("         uv run python test_puct.py gomoku")
+        sys.exit(1)
     game_name = sys.argv[1] # tictactoe or gomoku
     run_all_tests(game_name)

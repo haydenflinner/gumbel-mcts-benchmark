@@ -2,7 +2,7 @@ This repository provides the benchmark for [gumbel-mcts](https://github.com/oliv
 
 We use a separate repository to keep the original repo minimal and due to a dependency on an external reference.
 
-All benchmarks use Gomoku (15×15, 225 actions). Run them from the `benchmarks/` directory.
+All benchmarks use Gomoku (15×15, 225 actions). Run them from the `benchmarks/` directory using `uv` (e.g. `uv run python benchmarks/benchmark_puct_speedup.py`)
 
 ### PUCT Efficiency (`benchmark_puct_speedup.py`)
 
@@ -68,3 +68,6 @@ Gumbel fixed at 8 sims — how many PUCT sims to match? (we proxy a trained mode
 
 PUCT needs roughly **200× the simulation budget** to match Gumbel when the policy prior is informative.
 
+### Validation of PUCT against reference
+
+To compare the output of `puct.py` against the golden reference: `uv run python tests
