@@ -1,75 +1,42 @@
-# gumbel-mcts
+This repository provides the benchmark for [gumbel-mcts](https://github.com/olivkoch/gumbel-mcts). 
 
-A lightweight and modular Gumbel MCTS implementation
+We use a separate repository to keep the original repo minimal and due to a dependency on an external reference.
 
-## Motivation
+All benchmarks use Gomoku (15×15, 225 actions). Run them from the `benchmarks/` directory.
 
-Most open-source MCTS implementations provide only standard PUCT (AlphaZero-style) or dense Gumbel MCTS (MuZero, EfficientZero). Sparse Gumbel MCTS — which makes Gumbel planning practical for large action spaces like chess (4672 actions) or Go (362) — is essentially absent.
+### PUCT Efficiency (`benchmark_puct_speedup.py`)
 
-This project provides three MCTS variants that cover the full spectrum:
+Measures the speedup of the PUCT implementation (`puct.py`) compared to `reference.py` taken from [mcts_v2.py](https://github.com/michaelnny/alpha_zero/blob/main/alpha_zero/core/mcts_v2.py)
 
-### 1. PUCT (`puct.py`) — Standard AlphaZero UCB
+On a Mac M3 Pro:
 
-Classic PUCT selects actions by maximizing $Q(s,a) + c \cdot P(s,a) \cdot \frac{\sqrt{N(s)}}{1 + N(s,a)}$, then samples moves proportionally to visit counts. It's the **fastest** variant and explores broadly, making it robust when the policy prior is weak or untrained. The downside: it needs many simulations to concentrate on the best move, and doesn't produce a theoretically improved policy.
+================================================================================
+BENCHMARKING: GomokuModel
+================================================================================
+Config                    | V2 (s)     | V3 (s)     | Speedup    | V3 sims/s   
+--------------------------------------------------------------------------------
+8 games × 50 sims         | 0.076      | 0.038      | 2.02      x | 10647       
+32 games × 50 sims        | 0.276      | 0.039      | 7.18      x | 41526       
+64 games × 100 sims       | 0.713      | 0.078      | 9.12      x | 81939       
+128 games × 200 sims      | 2.240      | 0.190      | 11.80     x | 134855      
+256 games × 200 sims      | 3.724      | 0.273      | 13.66     x | 187861      
+1024 games × 800 sims     | 47.146     | 3.357      | 14.04     x | 244013      
 
-This version has been extensively tested against [mcts_v2](https://github.com/michaelnny/alpha_zero/blob/main/alpha_zero/core/mcts_v2.py) which is part of the book "The Art of Reinforcement Learning: Fundamentals, Mathematics, and Implementation with Python." by Michael Hu.
+On an NVIDIA A100:
 
+================================================================================
+BENCHMARKING: GomokuModel
+================================================================================
+Config                    | V2 (s)     | V3 (s)     | Speedup    | V3 sims/s   
+--------------------------------------------------------------------------------
+8 games × 50 sims         | 0.073      | 0.035      | 2.07      x | 11361       
+32 games × 50 sims        | 0.275      | 0.056      | 4.92      x | 28639       
+64 games × 100 sims       | 0.802      | 0.086      | 9.34      x | 74596       
+128 games × 200 sims      | 2.797      | 0.206      | 13.56     x | 124129      
+256 games × 200 sims      | 5.385      | 2.327      | 2.31      x | 22003       
+1024 games × 800 sims     | 89.579     | 4.676      | 19.16     x | 175196
 
-### 2. GumbelDense (`gumbel_dense.py`) — Gumbel MCTS with dense storage
-
-Implements *Sequential Halving with Gumbel* from [Danihelka et al. (2022)](https://openreview.net/forum?id=bERaNdoegnO). At the root, Gumbel noise converts action selection into a sample-without-replacement problem. The simulation budget is split across halving phases that progressively prune weaker candidates. After search, the output is a theoretically grounded improved policy $\pi' = \text{softmax}(\log \pi + \sigma \cdot \bar{Q}_{\text{completed}})$ — directly usable as a training target without temperature tuning.
-
-This makes Gumbel MCTS **dramatically more sample-efficient** than PUCT when the policy prior is informative (benchmarks show PUCT needs ~32× the simulation budget to match). The trade-off: it stores edges as dense `(max_nodes, NUM_ACTIONS)` arrays, so memory scales with the full action space regardless of how many moves are actually legal.
-
-### 3. GumbelSparse (`gumbel_sparse.py`) — Gumbel MCTS with sparse storage
-
-Runs the **exact same** Gumbel sequential halving algorithm as GumbelDense, but stores edges in a flat pool where each node only allocates slots for its legal moves. The difference is purely in memory layout:
-
-| | Dense | Sparse |
-|---|---|---|
-| Storage | `(max_nodes, NUM_ACTIONS)` per node | `O(legal_moves)` per node |
-| 200K nodes, chess | ~10.5 GB | ~98 MB |
-
-This makes GumbelSparse the only variant that can realistically run games with large action spaces. It's also ~19% faster than GumbelDense at scale on Gomoku, and the gap widens with larger action spaces.
-
-### Which one should I use?
-
-| Scenario | Variant |
-|---|---|
-| Weak / random policy, need broad exploration | **PUCT** |
-| Small action space + trained policy | **GumbelDense** |
-| Large action space (chess, Go) or memory-constrained | **GumbelSparse** |
-| Need improved policy $\pi'$ as training target | **GumbelDense** or **GumbelSparse** |
-| Not sure | **GumbelSparse** (drop-in replacement for GumbelDense, works everywhere) |
-
-
-
-## Usage
-
-```
-def play_game():
-    logic = TicTacToeLogic()
-    model = TinyModel()
-    model.eval()
-
-    board = np.zeros((3, 3), dtype=np.int8)
-    player = 1
-    symbols = {0: ".", 1: "X", 2: "O"}
-
-    while True:
-        tree = GumbelSparse(n_games=1, max_nodes=500, device="cpu", logic=logic)
-        tree.initialize_roots([0], board.ravel()[None], np.array([player]))
-        move = tree.run_simulation_batch(model, [0], num_simulations=50)
-        action = move[0]
-
-        _, winner, done, board = logic.fast_step(board, action, player)
-```
-
-## Benchmarks
-
-All benchmarks use Gomoku (15×15, 225 actions) on CPU. Run them from the `benchmarks/` directory.
-
-### Speed (`benchmark_throughput.py`)
+### Throughput (`benchmark_throughput.py`)
 
 Measures wall-clock time per MCTS search call at increasing scale.
 
@@ -79,7 +46,7 @@ Measures wall-clock time per MCTS search call at increasing scale.
 | **GumbelDense** | 2.91 ms | 13.9 ms | 72.8 ms |
 | **GumbelSparse** | 3.40 ms | 16.4 ms | 89.0 ms |
 
-PUCT is fastest because it skips sequential halving. GumbelSparse is slower than GumbelDense on Gomoku (225 actions) due to indirection overhead, but the relationship reverses for larger action spaces (e.g. chess, 4672 actions) where sparse storage avoids iterating over thousands of illegal moves.
+PUCT is fastest because it skips sequential halving. GumbelSparse is slower than GumbelDense due to indirection overhead, but the relationship reverses for larger action spaces (e.g. chess, 4672 actions) where sparse storage avoids iterating over thousands of illegal moves.
 
 ### Win rate (`benchmark_winrate.py`)
 
@@ -90,11 +57,11 @@ PUCT vs GumbelSparse head-to-head, 30 games, 50 sims/move, alternating colors.
 | **Random** (uniform policy) | **100%** | 0% |
 | **Heuristic** (simulates trained network) | 0% | **100%** |
 
-With an uninformative policy, PUCT's broader UCB exploration wins. With an informative policy, Gumbel's sequential halving exploits the logits and dominates — matching the paper's thesis.
+With an uninformative policy, PUCT's broader UCB exploration wins. With an informative policy, Gumbel's sequential halving exploits the logits and dominates.
 
-### Simulation efficiency (`benchmark_asymmetry.py`)
+### Simulation efficiency (`benchmark_sparse_gumbel_efficiency.py`)
 
-Gumbel fixed at 8 sims — how many PUCT sims to match? (Heuristic model, noise=15.0, 40 games per tier.)
+Gumbel fixed at 8 sims — how many PUCT sims to match? (we proxy a trained model with a noisy heuristic one)
 
 | PUCT sims | PUCT win% |
 |---|---|
