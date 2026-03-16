@@ -118,7 +118,7 @@ def run_benchmark(model_v3, model_name: str, device: str, eval_func_v2,
     print(f"\n{'='*80}")
     print(f"BENCHMARKING: {model_name}")
     print(f"{'='*80}")
-    print(f"{'Config':<25} | {'V2 (s)':<10} | {'V3 (s)':<10} | {'Speedup':<10} | {'V3 sims/s':<12}")
+    print(f"{'Config':<25} | {'V2 (s)':<10} | {'V3 (s)':<10} | {'V3 sims/s':<12} | {'Speedup':<10}")
     print("-" * 80)
 
     results = []
@@ -172,7 +172,7 @@ def run_benchmark(model_v3, model_name: str, device: str, eval_func_v2,
         speedup = v2_time / v3_time
         v3_sps = (n_games * sims) / v3_time
         
-        print(f"{cfg_str:<25} | {v2_time:<10.3f} | {v3_time:<10.3f} | {speedup:<10.2f}x | {v3_sps:<12.0f}")
+        print(f"{cfg_str:<25} | {v2_time:<10.3f} | {v3_time:<10.3f} | {v3_sps:<12.0f} | {speedup:<10.2f}x")
         
         results.append({
             "config": cfg,
