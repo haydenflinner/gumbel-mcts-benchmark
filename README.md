@@ -70,4 +70,4 @@ PUCT needs roughly **200× the simulation budget** to match Gumbel when the poli
 
 ### Validation of PUCT against reference
 
-To compare the output of `puct.py` against the golden reference: `uv run python tests
+To compare the output of `puct.py` against the golden reference: `uv run python tests/test_puct.py gomoku`
