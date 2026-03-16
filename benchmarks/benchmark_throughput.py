@@ -1,4 +1,4 @@
-"""Benchmark PUCT vs GumbelDense vs GumbelSparse on Tic-Tac-Toe and Gomoku."""
+"""Benchmark of throughput for PUCT vs GumbelDense vs GumbelSparse on Tic-Tac-Toe and Gomoku."""
 
 import time
 import numpy as np

@@ -1,19 +1,14 @@
+""" This test ensures that puct.py generates the exact same policy as the reference MCTS (reference.py)
+"""
+
 import sys
-import os
 import torch
 import numpy as np
 import torch.nn as nn
 from functools import partial
 
-# ---------------------------------------------------------------------------
-# Path setup
-# ---------------------------------------------------------------------------
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.path.join(ROOT, "src"))
-sys.path.insert(0, os.path.join(ROOT, "tests"))
-
-from gumbel_mcts.puct import PUCT                       # was MCTSTreeV3
-from gumbel_mcts.reference import (                      # was mcts_v2
+from gumbel_mcts.puct import PUCT                       
+from gumbel_mcts.reference import (                     
     Node, DummyNode, expand, backup, best_child,
     generate_search_policy, uct_search, parallel_uct_search,
 )
@@ -22,14 +17,8 @@ from game_logic.tictactoe import TicTacToeLogic
 from game_logic.gomoku import GomokuLogic
 from test_positions_generator import (
     get_test_positions_for_game,
-    TestPosition,
-    play_sequence,
 )
 
-
-# ---------------------------------------------------------------------------
-# GameResNetModule replacement
-# ---------------------------------------------------------------------------
 def _get_logic(game_name: str):
     name = game_name.lower()
     if "tictactoe" in name or "ttt" in name:
@@ -698,5 +687,5 @@ def run_all_tests(game_name: str):
 
 
 if __name__ == "__main__":
-    game_name = sys.argv[1]
+    game_name = sys.argv[1] # tictactoe or gomoku
     run_all_tests(game_name)
