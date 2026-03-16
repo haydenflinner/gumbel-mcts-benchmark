@@ -66,5 +66,5 @@ Gumbel fixed at 8 sims — how many PUCT sims to match? (we proxy a trained mode
 | 128 | 43% |
 | 256 | **55%** |
 
-PUCT needs roughly **32× the simulation budget** to match Gumbel when the policy prior is informative.
+PUCT needs roughly **200× the simulation budget** to match Gumbel when the policy prior is informative.
 
