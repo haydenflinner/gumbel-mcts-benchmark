@@ -195,7 +195,7 @@ def print_summary(all_results: dict):
     configs = [r["config"] for r in all_results[model_names[0]]]
     
     # Header
-    header = f"{'Config':<25}"
+    header = f"{'Config':<40}"
     for name in model_names:
         header += f" | {name[:12]:<12}"
     print(header)
@@ -203,7 +203,7 @@ def print_summary(all_results: dict):
     
     # Rows
     for i, cfg in enumerate(configs):
-        cfg_str = f"{cfg['n_games']} × {cfg['sims']}"
+        cfg_str = f"{cfg['n_games']} × {cfg['sims']} x {cfg['parallel']} parallel"
         row = f"{cfg_str:<25}"
         for name in model_names:
             sps = all_results[name][i]["v3_sims_per_sec"]
@@ -236,13 +236,18 @@ if __name__ == "__main__":
     # --- Benchmark Configs ---
     configs = [
         {"n_games": 8,   "sims": 50,  "parallel": 8},
+        {"n_games": 8,   "sims": 50,  "parallel": 16},
+        {"n_games": 8,   "sims": 50,  "parallel": 32},
         {"n_games": 32,  "sims": 50,  "parallel": 8},
+        {"n_games": 32,  "sims": 50,  "parallel": 32},
         {"n_games": 64,  "sims": 100, "parallel": 16},
+        {"n_games": 64,  "sims": 100, "parallel": 64},
         {"n_games": 128, "sims": 200, "parallel": 16},
         {"n_games": 256, "sims": 200, "parallel": 32}, 
         {"n_games": 256, "sims": 200, "parallel": 128}, 
         {"n_games": 1024, "sims": 800, "parallel": 64}, 
         {"n_games": 1024, "sims": 800, "parallel": 512},
+        {"n_games": 1024, "sims": 800, "parallel": 1024},
         ]
     
     max_games = max(cfg["n_games"] for cfg in configs)
