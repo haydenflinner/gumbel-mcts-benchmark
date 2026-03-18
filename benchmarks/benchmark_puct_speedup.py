@@ -118,7 +118,7 @@ def run_benchmark(model_v3, model_name: str, device: str, eval_func_v2,
     print(f"\n{'='*80}")
     print(f"BENCHMARKING: {model_name}")
     print(f"{'='*80}")
-    print(f"{'Config':<25} | {'V2 (s)':<10} | {'V3 (s)':<10} | {'V3 sims/s':<12} | {'Speedup':<10}")
+    print(f"{'Config':<40} | {'V2 (s)':<10} | {'V3 (s)':<10} | {'V3 sims/s':<12} | {'Speedup':<10}")
     print("-" * 80)
 
     results = []
@@ -129,7 +129,7 @@ def run_benchmark(model_v3, model_name: str, device: str, eval_func_v2,
         n_parallel = cfg["parallel"]
         
         current_envs = envs[:n_games]
-        cfg_str = f"{n_games} games × {sims} sims"
+        cfg_str = f"{n_games} games × {sims} sims × {n_parallel} parallel"
         
         # --- Benchmark V2 (loop over games, parallel simulations) ---
         v2_times = []
