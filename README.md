@@ -2,6 +2,12 @@ This repository provides the benchmark for [gumbel-mcts](https://github.com/oliv
 
 We use a separate repository to keep the original repo minimal and due to a dependency on an external reference.
 
+This benchmark demonstrates the following:
+
+1. Our PUCT implementation strictly matches the output/policy of a golden standard [mcts_v2.py](https://github.com/michaelnny/alpha_zero/blob/main/alpha_zero/core/mcts_v2.py)
+2. Our PUCT implementation is **2-20X faster** than this golden standard, both on Mac and NVIDIA GPUs
+3. Gumbel is **much more simulation-efficient** than PUCT at similar throughput
+
 All benchmarks use Gomoku (15×15, 225 actions). Run them from the `benchmarks/` directory using `uv` (e.g. `uv run python benchmarks/benchmark_puct_speedup.py`)
 
 ### PUCT Efficiency (`benchmark_puct_speedup.py`)
