@@ -1,7 +1,7 @@
 Blazing fast MCTS on CPU: 100,000s sims per second! :rocket: 
 
 <p align="center">
-  <img src="benchmarks/puct_speedup.png.png" width="100%" alt="" />
+  <img src="benchmarks/puct_speedup.png" width="100%" alt="" />
 </p>
 
 This repository provides the benchmark for [gumbel-mcts](https://github.com/olivkoch/gumbel-mcts). 
