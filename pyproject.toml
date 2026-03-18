@@ -15,6 +15,7 @@ dependencies = [
     "numpy",
     "torch",
     "numba",
+    "matplotlib",
 ]
 
 [tool.setuptools.packages.find]

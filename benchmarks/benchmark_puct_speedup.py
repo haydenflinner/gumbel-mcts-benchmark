@@ -240,6 +240,7 @@ if __name__ == "__main__":
         {"n_games": 64,  "sims": 100, "parallel": 16},
         {"n_games": 128, "sims": 200, "parallel": 16},
         {"n_games": 256, "sims": 200, "parallel": 32}, 
+        {"n_games": 256, "sims": 200, "parallel": 128}, 
         {"n_games": 1024, "sims": 800, "parallel": 64}, 
         {"n_games": 1024, "sims": 800, "parallel": 512},
         ]
