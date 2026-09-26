@@ -83,6 +83,74 @@ Gumbel fixed at 8 sims — how many PUCT sims to match? (we proxy a trained mode
 
 PUCT needs roughly **200× the simulation budget** to match Gumbel when the policy prior is informative.
 
+## Rust port (Burn)
+
+`rust/` contains a pure-Rust port of all three search engines (PUCT, GumbelDense, GumbelSparse), the V2 reference (`parallel_uct_search`), and the benchmark models, using [Burn](https://github.com/tracel-ai/burn) (NdArray backend) for the neural network:
+
+```bash
+cd rust
+cargo run --release --bin bench_throughput
+cargo run --release --bin bench_puct_speedup
+cargo run --release --bin bench_winrate
+cargo run --release --bin bench_efficiency
+cargo test --release   # sanity tests
+```
+
+All Rust numbers below were measured on an Apple M3 Max.
+
+### PUCT Efficiency — Rust
+
+V2 is the Rust port of the same reference algorithm (`reference.rs`), V3 is the Rust port of `puct.py`. Single-threaded tree traversal, Burn/NdArray for evaluation.
+
+| Config                                   | V2 (s)     | V3 (s)     | V3 sims/s    | Speedup     |
+| -----------------------------------------|------------|------------|--------------|------------ |
+| 8 games × 50 sims × 32 parallel          | 0.004      | 0.002      | 172799       | 1.55 x |
+| 32 games × 50 sims × 32 parallel         | 0.015      | 0.007      | 240237       | 2.26 x |
+| 64 games × 100 sims × 64 parallel        | 0.054      | 0.025      | 255002       | 2.17 x |
+| 128 games × 200 sims × 16 parallel       | 0.155      | 0.098      | 261921       | 1.59 x |
+| 256 games × 200 sims × 32 parallel       | 0.306      | 0.191      | 268166       | 1.60 x |
+| 1024 games × 800 sims × 64 parallel      | 4.377      | 5.213      | 157147       | 0.84 x |
+| 1024 games × 800 sims × 512 parallel     | 9.695      | 5.749      | 142506       | 1.69 x |
+| 1024 games × 800 sims × 1024 parallel    | 15.074     | 5.017      | 163281       | 3.00 x |
+
+V3 sustains ~150-270K sims/s on NdArray — in the same range as the PyTorch numbers above — while the Rust V2 reference is roughly an order of magnitude faster than its Python counterpart, which compresses the speedup ratio. At large scale the V3 runtime is dominated by the (untuned) dense (max_nodes × 225) node allocation.
+
+### Throughput — Rust vs Python (M3 Max)
+
+Python = numba kernels + PyTorch CPU, measured on the same machine. Rust = Burn NdArray backend. (Gumbel times vary run-to-run with the sampled root noise; values shown are a representative run.)
+
+| Variant | 50 sims / 500 nodes | 200 sims / 5K nodes | 800 sims / 50K nodes |
+|---|---|---|---|
+| **PUCT (Python)** | 2.77 ms | 10.9 ms | 45.6 ms |
+| **PUCT (Rust)** | 1.65 ms | 6.75 ms | 32.7 ms |
+| **GumbelDense (Python)** | 3.14 ms | 18.6 ms | 125.7 ms |
+| **GumbelDense (Rust)** | 1.72 ms | 7.30 ms | 49.9 ms |
+| **GumbelSparse (Python)** | 3.54 ms | 17.8 ms | 110.3 ms |
+| **GumbelSparse (Rust)** | 1.77 ms | 8.15 ms | 57.6 ms |
+
+### Win rate — Rust
+
+PUCT vs GumbelSparse head-to-head, 30 games, 50 sims/move, alternating colors — same result as Python:
+
+| Model | PUCT wins | Gumbel wins |
+|---|---|---|
+| **Random** (uniform policy) | **100%** | 0% |
+| **Heuristic** (simulates trained network) | 7% | **93%** |
+
+### Simulation efficiency — Rust
+
+Gumbel fixed at 8 sims — how many PUCT sims to match?
+
+| PUCT sims | PUCT win% |
+|---|---|
+| 8 | 42% |
+| 16 | 42% |
+| 32 | 50% |
+| 64 | 33% |
+| 128 | 47% |
+| 256 | 50% |
+| 512 | **55%** |
+
 ### Validation of PUCT against reference
 
 To compare the output of `puct.py` against the golden reference: `uv run python tests/test_puct.py gomoku`
